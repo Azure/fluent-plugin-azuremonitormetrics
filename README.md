@@ -5,18 +5,21 @@
 
 This plugin gets the monitor metrics from Azure Monitor API to fluentd.
 
-Installation
+## Installation
 
+Install from RubyGems:
+```
 $ gem install fluent-plugin-azuremonitormetrics
+```
 
 ## Configuration
 
 ```config
 <source>
-  @type azuremonitormetrics
-  tag azuremonitormetrics
-  tenant_id [Azure_Tenant_ID]
-  client_id [Azure_Client_Id]
+  @type         azuremonitormetrics
+  tag           azuremonitormetrics
+  tenant_id     [Azure_Tenant_ID]
+  client_id     [Azure_Client_Id]
   client_secret [Azure_Client_Secret]
 
   timespan          [timespan in second] (default: 300)
@@ -28,11 +31,11 @@ $ gem install fluent-plugin-azuremonitormetrics
   filter            [filter to reduce metric data] (example A eq 'a1' and B eq '*')
   result_type       [reduces the set of data collected]
   metric            [The name of the metric to retrive]
-  api_version      [api version]   (default: "2017-05-01-preview")
+  api_version       [api version]   (default: "2017-05-01-preview")
 </source>
 ```
 
-Documentation for all the parameters can found [here](https://docs.microsoft.com/en-us/rest/api/monitor/Metrics/List#get_metric_for_data)
+Documentation for all the parameters can found [here](https://docs.microsoft.com/en-us/rest/api/monitor/Metrics/List#get_metric_for_data)\n
 This plugin is porting from [fluent-plugin-cloudwatch](https://github.com/yunomu/fluent-plugin-cloudwatch)
 
 #### output data format
