@@ -35,7 +35,7 @@ $ gem install fluent-plugin-azuremonitormetrics
 </source>
 ```
 
-Documentation for all the parameters can found [here](https://docs.microsoft.com/en-us/rest/api/monitor/Metrics/List#get_metric_for_data)\n
+Documentation for all the parameters can found [here](https://docs.microsoft.com/en-us/rest/api/monitor/Metrics/List#get_metric_for_data)<br/>
 This plugin is porting from [fluent-plugin-cloudwatch](https://github.com/yunomu/fluent-plugin-cloudwatch)
 
 #### output data format
