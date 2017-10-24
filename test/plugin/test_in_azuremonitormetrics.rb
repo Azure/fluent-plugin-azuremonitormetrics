@@ -21,7 +21,7 @@ class AzureMonitorMetricsInputTest < Test::Unit::TestCase
     filter            A eq 'a1' and B eq '*'
     result_type       Success
     metric            Percentage CPU
-    api_version      2017-05-01-preview
+    api_version       2017-05-01-preview
   ]
 
   def create_driver_monitor_metrics(conf = CONFIG_MONITOR_METRICS)
@@ -43,6 +43,20 @@ class AzureMonitorMetricsInputTest < Test::Unit::TestCase
     assert_equal 'Success', d.instance.result_type
     assert_equal 'Percentage CPU', d.instance.metric
     assert_equal '2017-05-01-preview', d.instance.api_version
+  end
+
+  def test_set_query_options
+    d = create_driver_monitor_metrics
+    query_options = d.instance.set_path_options(d.instance.filter, {})
+    assert_equal '2017-05-01-preview', query_options[:query_params]['api-version']
+    assert_equal 'A eq \'a1\' and B eq \'*\'', query_options[:query_params]['$filter']
+    assert_equal 'Average,count', query_options[:query_params]['aggregation']
+    assert_equal 'PT1M', query_options[:query_params]['interval']
+    assert_equal 20, query_options[:query_params]['$top']
+    assert_equal 'sum asc', query_options[:query_params]['$orderby']
+    assert_equal 'Success', query_options[:query_params]['resultType']
+    assert_equal 'Percentage CPU', query_options[:query_params]['metric']
+    assert_equal '/subscriptions/b324c52b-4073-4807-93af-e07d289c093e/resourceGroups/test/providers/Microsoft.Storage/storageAccounts/larryshoebox/blobServices/default/providers/Microsoft.Insights/metrics/BlobCapacity', query_options[:path_params]['resourceUri']
   end
 
 end
