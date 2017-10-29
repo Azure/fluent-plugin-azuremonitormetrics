@@ -41,7 +41,6 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
     provider = MsRestAzure::ApplicationTokenProvider.new(@tenant_id, @client_id, @client_secret)
     credentials = MsRest::TokenCredentials.new(provider)
     @client = Azure::ARM::Monitor::MonitorManagementClient.new(credentials);
-    @client.subscription_id = @subscription_id
   end
 
   def start
@@ -53,29 +52,6 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
     super
     @watcher.terminate
     @watcher.join
-  end
-
-  private
-
-  def watch
-    while true
-        log.debug "azure monitor metrics: watch thread starting"
-        output
-        sleep @timespan
-    end
-  end
-
-  def output
-      start_time = Time.now - @timespan
-      end_time = Time.now
-      
-      log.debug "start time: #{start_time}, end time: #{end_time}"
-      timespan = "#{start_time}/#{end_time}"
-
-      monitor_metrics_promise = get_monitor_metrics_async(timespan)
-      monitor_metrics = monitor_metrics_promise.value!
-
-      router.emit(@tag, Time.now.to_i, monitor_metrics.body['value'])
   end
 
   def set_path_options(timespan, custom_headers)
@@ -103,6 +79,29 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
     }
   end
 
+  private
+
+  def watch
+    log.debug "azure monitor metrics: watch thread starting"
+    @next_fetch_time = Time.now
+
+    until @finished
+        start_time = @next_fetch_time - @timespan
+        end_time = @next_fetch_time
+
+        log.debug "start time: #{start_time}, end time: #{end_time}"
+        timespan_string = "#{start_time.utc.iso8601}/#{end_time.utc.iso8601}"
+
+        monitor_metrics_promise = get_monitor_metrics_async(timespan_string)
+        monitor_metrics = monitor_metrics_promise.value!
+
+        router.emit(@tag, Time.now.to_i, monitor_metrics.body['value'])
+        @next_fetch_time += @timespan
+        sleep @timespan
+    end
+
+  end
+
   def get_monitor_metrics_async(timespan,filter = nil, custom_headers = nil)
     path_template = '/{resourceUri}/providers/microsoft.insights/metrics'
 
@@ -115,7 +114,7 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
       response_content = http_response.body
       unless status_code == 200
         error_model = JSON.load(response_content)
-        fail MsRestAzure::AzureOperationError.new(result.request, http_response, error_model)
+        log.error(error_model['error']['message'])
       end
 
       result.request_id = http_response['x-ms-request-id'] unless http_response['x-ms-request-id'].nil?
@@ -124,7 +123,7 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
         begin
           result.body = response_content.to_s.empty? ? nil : JSON.load(response_content)
         rescue Exception => e
-          fail MsRest::DeserializationError.new('Error occurred in parsing the response', e.message, e.backtrace, result)
+          log.error("Error occurred in parsing the response")
         end
       end
 

@@ -1,11 +1,14 @@
 # fluent-plugin-azuremonitormetric, a plugin for [Fluentd](http://fluentd.org) 
 ## Overview
 
-***Azure Monitor Metrics*** input plugin.
+[Azure Monitor Metrics](https://docs.microsoft.com/en-us/rest/api/monitor/Metrics/List) input plugin.
 
 This plugin gets the monitor metrics from Azure Monitor API to fluentd.
 
 ## Installation
+
+To use this plugin, you need to have Azure Service Principal.<br/>
+Create an Azure Service Principal through [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli?toc=%2fazure%2fazure-resource-manager%2ftoc.json) or [Azure portal](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-create-service-principal-portal).
 
 Install from RubyGems:
 ```
@@ -38,82 +41,48 @@ $ gem install fluent-plugin-azuremonitormetrics
 Documentation for all the parameters can found [here](https://docs.microsoft.com/en-us/rest/api/monitor/Metrics/List#get_metric_for_data)<br/>
 This plugin is porting from [fluent-plugin-cloudwatch](https://github.com/yunomu/fluent-plugin-cloudwatch)
 
+Start fluentd:
+
+```
+$ fluentd -c ./fluentd.conf
+```
+
 #### output data format
+
+Example of Average aggregation on Percentage CPU metric, on timespan of 5 minutes and 1 minute grain:
 
 ```
 2017-10-22 14:25:28 azuremonitormetrics {
-                                          "cost": 0,
-                                          "timespan": "2017-04-14T02:20:00Z/2017-04-14T04:20:00Z",
-                                          "interval": "PT1M",
-                                          "value": [
+                                          "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my_resource_group/providers/Microsoft.Compute/virtualMachines/my-vm/providers/Microsoft.Insights/metrics/Percentage CPU",
+                                          "type": "Microsoft.Insights/metrics",
+                                          "name": {
+                                            "value": "Percentage CPU",
+                                            "localizedValue": "Percentage CPU"
+                                          },
+                                          "unit": "Percent",
+                                          "timeseries": [
                                             {
-                                              "id": "/subscriptions/b324c52b-4073-4807-93af-e07d289c093e/resourceGroups/test/providers/Microsoft.Storage/storageAccounts/larryshoebox/blobServices/default/providers/Microsoft.Insights/metrics/BlobCapacity",
-                                              "type": "Microsoft.Insights/metrics",
-                                              "name": {
-                                                "value": "BlobCapacity",
-                                                "localizedValue": "Blob Capacity"
-                                              },
-                                              "unit": "Bytes",
-                                              "timeseries": [
+                                              "metadatavalues": [],
+                                              "data": [
                                                 {
-                                                  "metadatavalues": [
-                                                    {
-                                                      "name": {
-                                                        "value": "blobtype",
-                                                        "localizedValue": "blobtype"
-                                                      },
-                                                      "value": "PageBlob"
-                                                    }
-                                                  ],
-                                                  "data": [
-                                                    {
-                                                      "timeStamp": "2017-04-14T02:20:00.000Z",
-                                                      "count": 0
-                                                    },
-                                                    {
-                                                      "timeStamp": "2017-04-14T02:21:00.000Z",
-                                                      "count": 0
-                                                    },
-                                                    {
-                                                      "timeStamp": "2017-04-14T02:22:00.000Z",
-                                                      "count": 0
-                                                    },
-                                                    {
-                                                      "timeStamp": "2017-04-14T02:23:00.000Z",
-                                                      "count": 1,
-                                                      "average": 0
-                                                    }
-                                                  ]
+                                                  "timeStamp": "2017-10-24T14:11:00Z",
+                                                  "average": 2.5075
                                                 },
                                                 {
-                                                  "metadatavalues": [
-                                                    {
-                                                      "name": {
-                                                        "value": "blobtype",
-                                                        "localizedValue": "blobtype"
-                                                      },
-                                                      "value": "BlockBlob"
-                                                    }
-                                                  ],
-                                                  "data": [
-                                                    {
-                                                      "timeStamp": "2017-04-14T02:20:00.000Z",
-                                                      "count": 0
-                                                    },
-                                                    {
-                                                      "timeStamp": "2017-04-14T02:21:00.000Z",
-                                                      "count": 0
-                                                    },
-                                                    {
-                                                      "timeStamp": "2017-04-14T02:22:00.000Z",
-                                                      "count": 0
-                                                    },
-                                                    {
-                                                      "timeStamp": "2017-04-14T02:23:00.000Z",
-                                                      "count": 1,
-                                                      "average": 245
-                                                    }
-                                                  ]
+                                                  "timeStamp": "2017-10-24T14:12:00Z",
+                                                  "average": 2.505
+                                                },
+                                                {
+                                                  "timeStamp": "2017-10-24T14:13:00Z",
+                                                  "average": 2.455
+                                                },
+                                                {
+                                                  "timeStamp": "2017-10-24T14:14:00Z",
+                                                  "average": 2.4375
+                                                },
+                                                {
+                                                  "timeStamp": "2017-10-24T14:15:00Z",
+                                                  "average": 2.4375
                                                 }
                                               ]
                                             }
@@ -121,6 +90,13 @@ This plugin is porting from [fluent-plugin-cloudwatch](https://github.com/yunomu
                                         }
 ```
 
+## Test
+
+Run tests:
+
+```
+$ rake test
+```
 
 ## Contributing
 
