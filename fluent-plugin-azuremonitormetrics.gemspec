@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |gem|
   gem.name          = "fluent-plugin-azuremonitormetrics"
-  gem.version       = "0.0.1"
+  gem.version       = "0.0.2"
   gem.authors       = ["Ilana Kantorov"]
   gem.email         = ["ilanak@microsoft.com"]
   gem.description   = %q{Input plugin for Azure Monitor Metrics.}
