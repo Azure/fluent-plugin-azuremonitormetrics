@@ -28,8 +28,8 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
   config_param :orderby,            :string, :default => nil
   config_param :filter,             :string, :default => nil
   config_param :result_type,        :string, :default => nil
-  config_param :metric,             :string, :default => nil
-  config_param :api_version,        :string, :default => "2017-05-01-preview"
+  config_param :metrics,            :string, :default => nil
+  config_param :api_version,        :string, :default => "2016-09-01"
 
   def initialize
     super
@@ -54,26 +54,42 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
     @watcher.join
   end
 
-  def set_path_options(timespan, custom_headers)
-    fail ArgumentError, 'timespan is nil' if timespan.nil?
+  def get_param_string(original_param, query_string)
+    array = original_param.split(',')
+    param_string = ''
+    array.each {|var|
+      if param_string.empty?
+        param_string += "#{query_string} eq '#{var}'"
+      else
+        param_string += " or #{query_string} eq '#{var}'"
+      end
+    }
+
+    "and (#{param_string})"
+
+  end
+
+  def set_path_options(start_time, end_time, custom_headers)
+    fail ArgumentError, 'start_time is nil' if start_time.nil?
     request_headers = {}
 
     # Set Headers
     request_headers['x-ms-client-request-id'] = SecureRandom.uuid
     request_headers['accept-language'] = @client.accept_language unless @client.accept_language.nil?
 
+    metrics_string = get_param_string("Network Out,Percentage CPU", "name.value")
+    aggregation_string =  @aggregation.empty? ? '' : get_param_string("Average,Count", "aggregationType")
+
+    filter = "timeGrain eq duration'#{@interval}' #{metrics_string} #{aggregation_string} and startTime eq #{start_time.utc.iso8601} and endTime eq #{end_time.utc.iso8601}"
+    log.debug filter
     {
         middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
         path_params: {'resourceUri' => @resource_uri},
         query_params: {'api-version' => @api_version,
-                       'timespan' => timespan,
-                       'interval' => @interval,
-                       'aggregation' => @aggregation,
                        '$top' => @top,
                        '$orderby' => @orderby,
-                       '$filter' => @filter,
-                       'resultType' => @result_type,
-                       'metric' => @metric},
+                       '$filter' => filter,
+                       'resultType' => @result_type},
         headers: request_headers.merge(custom_headers || {}),
         base_url: @client.base_url
     }
@@ -90,9 +106,9 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
         end_time = @next_fetch_time
 
         log.debug "start time: #{start_time}, end time: #{end_time}"
-        timespan_string = "#{start_time.utc.iso8601}/#{end_time.utc.iso8601}"
 
-        monitor_metrics_promise = get_monitor_metrics_async(timespan_string)
+
+        monitor_metrics_promise = get_monitor_metrics_async(start_time, end_time)
         monitor_metrics = monitor_metrics_promise.value!
 
         router.emit(@tag, Time.now.to_i, monitor_metrics.body['value'])
@@ -102,10 +118,10 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
 
   end
 
-  def get_monitor_metrics_async(timespan,filter = nil, custom_headers = nil)
+  def get_monitor_metrics_async(start_time, end_time,filter = nil, custom_headers = nil)
     path_template = '/{resourceUri}/providers/microsoft.insights/metrics'
 
-    options = set_path_options(timespan, custom_headers)
+    options = set_path_options(start_time, end_time, custom_headers)
     promise = @client.make_request_async(:get, path_template, options)
 
     promise = promise.then do |result|
