@@ -33,7 +33,7 @@ $ gem install fluent-plugin-azuremonitormetrics
   orderby           [The aggregation to use for sorting] (example: sum asc)
   filter            [filter to reduce metric data] (example A eq 'a1' and B eq '*')
   result_type       [reduces the set of data collected]
-  metric            [The name of the metric to retrive]
+  metrics           [The name of the metrics to retrive, sperated by commas] (example: Network Out,Percentage CPU)
   api_version       [api version]   (default: "2017-05-01-preview")
 </source>
 ```
