@@ -77,8 +77,8 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
     request_headers['x-ms-client-request-id'] = SecureRandom.uuid
     request_headers['accept-language'] = @client.accept_language unless @client.accept_language.nil?
 
-    metrics_string = get_param_string("Network Out,Percentage CPU", "name.value")
-    aggregation_string =  @aggregation.empty? ? '' : get_param_string("Average,Count", "aggregationType")
+    metrics_string = get_param_string(@metrics, "name.value")
+    aggregation_string =  @aggregation.empty? ? '' : get_param_string(@aggregation, "aggregationType")
 
     filter = "timeGrain eq duration'#{@interval}' #{metrics_string} #{aggregation_string} and startTime eq #{start_time.utc.iso8601} and endTime eq #{end_time.utc.iso8601}"
     log.debug filter
