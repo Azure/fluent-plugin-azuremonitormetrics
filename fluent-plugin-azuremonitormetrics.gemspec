@@ -8,7 +8,7 @@ Gem::Specification.new do |gem|
   gem.authors       = ["Ilana Kantorov"]
   gem.email         = ["ilanak@microsoft.com"]
   gem.description   = %q{Input plugin for Azure Monitor Metrics.}
-  gem.homepage      = "https://github.com/Ilanak/fluent-plugin-azuremonitormetrics"
+  gem.homepage      = "https://github.com/Azure/fluent-plugin-azuremonitormetrics"
   gem.summary       = gem.description
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
