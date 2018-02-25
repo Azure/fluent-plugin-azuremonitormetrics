@@ -30,11 +30,11 @@ $ gem install fluent-plugin-azuremonitormetrics
   resource_uri      [the identifier of the resource]
   aggregation       [list of aggregation types] (example: Average,count)
   top               [Max number of records to retrive]
-  orderby           [The aggregation to use for sorting] (example: sum asc)
+  orderby           [The aggregation to use for sorting] (example: "sum asc")
   filter            [filter to reduce metric data] (example A eq 'a1' and B eq '*')
   result_type       [reduces the set of data collected]
   metrics           [The name of the metrics to retrive, sperated by commas] (example: Network Out,Percentage CPU)
-  api_version       [api version]   (default: "2017-05-01-preview")
+  api_version       [api version]   (default: "2016-09-01")
 </source>
 ```
 
