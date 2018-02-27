@@ -25,8 +25,8 @@ $ gem install fluent-plugin-azuremonitormetrics
   client_id     [Azure_Client_Id]
   client_secret [Azure_Client_Secret]
 
-  timespan          [timespan in second] (default: 300)
-  interval          [time grain of the query: string] (default: PT1M)
+  timespan          [The query timespan in seconds - must be greater than 60] (default: 300)
+  interval          [timegrain of the query] (default: PT1M, allowed values are: PT1M, PT5M, PT15M, PT30M, PT1H, PT6H, PT12H, PT24H)
   resource_uri      [the identifier of the resource]
   aggregation       [list of aggregation types] (example: Average,count)
   top               [Max number of records to retrive]
