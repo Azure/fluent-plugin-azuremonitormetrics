@@ -25,11 +25,10 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
   config_param :resource_uri,       :string, :default => nil
   config_param :aggregation,        :string, :default => nil
   config_param :top,                :integer, :default => nil
-  config_param :orderby,            :string, :default => nil
   config_param :filter,             :string, :default => nil
   config_param :result_type,        :string, :default => nil
   config_param :metrics,            :string, :default => nil
-  config_param :api_version,        :string, :default => "2016-09-01"
+  config_param :api_version,        :string, :default => "2017-05-01-preview"
 
   def initialize
     super
@@ -77,19 +76,20 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
     request_headers['x-ms-client-request-id'] = SecureRandom.uuid
     request_headers['accept-language'] = @client.accept_language unless @client.accept_language.nil?
 
-    metrics_string = get_param_string(@metrics, "name.value")
-    aggregation_string =  @aggregation.empty? ? '' : get_param_string(@aggregation, "aggregationType")
+    timespanstring = "#{start_time.utc.iso8601}/#{end_time.utc.iso8601}"
+    top = @filter.nil? ? nil : @top
 
-    filter = "timeGrain eq duration'#{@interval}' #{metrics_string} #{aggregation_string} and startTime eq #{start_time.utc.iso8601} and endTime eq #{end_time.utc.iso8601}"
-    log.debug filter
     {
         middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
         path_params: {'resourceUri' => @resource_uri},
         query_params: {'api-version' => @api_version,
-                       '$top' => @top,
-                       '$orderby' => @orderby,
-                       '$filter' => filter,
-                       'resultType' => @result_type},
+                       '$top' => top,
+                       '$filter' => @filter,
+                       'timespan' => timespanstring,
+                       'interval' => @interval,
+                       'metric' => @metrics,
+                       'resultType' => @result_type,
+                       'aggregation'=> @aggregation},
         headers: request_headers.merge(custom_headers || {}),
         base_url: @client.base_url
     }
@@ -130,7 +130,8 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
       response_content = http_response.body
       unless status_code == 200
         error_model = JSON.load(response_content)
-        log.error(error_model['error']['message'])
+        log.error("Error occurred while sending the request")
+        log.error(error_model)
       end
 
       result.request_id = http_response['x-ms-request-id'] unless http_response['x-ms-request-id'].nil?
@@ -140,6 +141,7 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
           result.body = response_content.to_s.empty? ? nil : JSON.load(response_content)
         rescue Exception => e
           log.error("Error occurred in parsing the response")
+          log.error(e)
         end
       end
 

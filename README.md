@@ -28,13 +28,12 @@ $ gem install fluent-plugin-azuremonitormetrics
   timespan          [The query timespan in seconds - must be greater than 60] (default: 300)
   interval          [timegrain of the query] (default: PT1M, allowed values are: PT1M, PT5M, PT15M, PT30M, PT1H, PT6H, PT12H, PT24H)
   resource_uri      [the identifier of the resource]
-  aggregation       [list of aggregation types] (example: Average,count)
-  top               [Max number of records to retrive]
-  orderby           [The aggregation to use for sorting] (example: "sum asc")
+  aggregation       [list of aggregation types, sperated by commas] (example: Average,count)
+  top               [Max number of records to retrive - vaild only if filter is specified. default is 10]
   filter            [filter to reduce metric data] (example A eq 'a1' and B eq '*')
   result_type       [reduces the set of data collected]
-  metrics           [The name of the metrics to retrive, sperated by commas] (example: Network Out,Percentage CPU)
-  api_version       [api version]   (default: "2016-09-01")
+  metrics           [The names of the metrics to retrive, sperated by commas] (example: Network Out,Percentage CPU)
+  api_version       [api version]   (default: "2017-05-01-preview")
 </source>
 ```
 
