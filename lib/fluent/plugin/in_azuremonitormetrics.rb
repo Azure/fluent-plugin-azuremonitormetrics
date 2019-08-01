@@ -99,21 +99,22 @@ class Fluent::AzureMonitorMetricsInput < Fluent::Input
 
   def watch
     log.debug "azure monitor metrics: watch thread starting"
-    @next_fetch_time = Time.now
+    @last_end_time = Time.now - @timespan
 
     until @finished
-        start_time = @next_fetch_time - @timespan
-        end_time = @next_fetch_time
+      start_time = @last_end_time
+      end_time = Time.now
 
-        log.debug "start time: #{start_time}, end time: #{end_time}"
+      log.debug "start time: #{start_time}, end time: #{end_time}, effective timespan: #{end_time - start_time}"
 
 
-        monitor_metrics_promise = get_monitor_metrics_async(start_time, end_time)
-        monitor_metrics = monitor_metrics_promise.value!
+      monitor_metrics_promise = get_monitor_metrics_async(start_time, end_time)
+      monitor_metrics = monitor_metrics_promise.value!
 
-        router.emit(@tag, Time.now.to_i, monitor_metrics.body['value'])
-        @next_fetch_time += @timespan
-        sleep @timespan
+      router.emit(@tag, Time.now.to_i, monitor_metrics.body['value'])
+      @last_end_time = end_time
+
+      sleep @timespan
     end
 
   end
